@@ -1,0 +1,13 @@
+{
+  "extends": "@tsconfig/strictest/tsconfig.json",
+  "include": ["src", "vite.config.mts"],
+  "compilerOptions": {
+    "noEmit": true,
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "typeRoots": ["./node_moduels/@types/", ".src/types"],
+    "jsx": "react-jsx"
+  }
+}
