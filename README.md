@@ -81,6 +81,14 @@ Maybe the app is named something ship or fleet related like ... ?
 
 ### Mascot
 
+Prompt: `{
+  "prompt": "A cute mascot of a new startup logo with a colorful, playful container ship. show containers in different colors. friendly seas.",
+  "image_size": "landscape_4_3",
+  "num_inference_steps": 4,
+  "num_images": 1,
+  "enable_safety_checker": true
+}` using the `fal-ai/flux/schnell` model.
+
 ![Penguin](https://fal.media/files/penguin/KWiSu8G3BPaNZvlP1Gdf9.png)
 
 ![Zebra](https://fal.media/files/zebra/lnZIpfhUw_GyysA-n4bjp.png)
