@@ -1,7 +1,6 @@
 import ReactServer from 'react-server-dom-webpack/server.edge'
 
 export function registerClientReference(id: string, exportName: string) {
-  console.log('registerClientReference', id, exportName)
   const reference = ReactServer.registerClientReference({}, id, exportName)
   return Object.defineProperties(
     {},

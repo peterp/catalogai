@@ -96,8 +96,6 @@ function vitePluginRSC_UseClient(): PluginOption {
     {
       name: vitePluginRSC_UseClient.name + ':transform',
       async transform(code, id) {
-        console.log(this.environment.name, id)
-
         if (this.environment.name !== 'react-server') {
           return
         }
@@ -110,7 +108,6 @@ function vitePluginRSC_UseClient(): PluginOption {
           for (const e of exports) {
             c += `export const ${e.ln} = registerClientReference(${JSON.stringify(id)}, ${JSON.stringify(e.ln)});`
           }
-
           return c
         }
       },
