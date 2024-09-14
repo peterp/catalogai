@@ -1,27 +1,6 @@
-import ReactServer from 'react-server-dom-webpack/server.edge'
+import ReactDomClient from "react-server-dom-webpack/client.browser";
 
-export function registerClientReference(id: string, exportName: string) {
-  const reference = ReactServer.registerClientReference({}, id, exportName)
-  return Object.defineProperties(
-    {},
-    {
-      ...Object.getOwnPropertyDescriptors(reference),
-      $$async: { value: true },
-    },
-  )
-}
-
-export function clientManifest() {
-  return new Proxy<ClientManifest>(
-    {},
-    {
-      get(_, key) {
-        if (typeof key !== 'string') {
-          throw new Error('clientManifest "key" is not a string')
-        }
-        const [id, name] = key.split('#')
-        return { id, name, chunks: [] }
-      },
-    },
-  )
+export function createServerReference(id: string, name: string) {
+  id = id + "#" + name;
+  return ReactDomClient.createServerReference(id, globalThis.__rsc_callServer);
 }

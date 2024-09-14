@@ -1,5 +1,3 @@
-declare module 'react-server-dom-webpack/node-loader'
-declare module 'react-server-dom-webpack/client.edge'
 
 // https://github.com/facebook/react/blob/b09e102ff1e2aaaf5eb6585b04609ac7ff54a5c8/packages/react-server-dom-webpack/src/shared/ReactFlightImportMetadata.js#L10
 type ImportManifestEntry = {
@@ -111,4 +109,10 @@ declare module 'react-server-dom-webpack/server' {
     model: ReactClientValue,
     webpackMap: ClientManifest,
   ): PipeableStream
+}
+
+
+declare module 'react-server-dom-webpack/client.browser' {
+
+  export function createServerReference<A, T>(id: string, callServer: (id: string, args: A) => Promise<T>)
 }

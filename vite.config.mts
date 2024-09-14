@@ -117,7 +117,7 @@ function vitePluginRSC_UseClient(): PluginOption {
         // TODO: Implement AST parsing & modification.
         if (code.includes('"use client"') || code.includes("'use client'")) {
           let c =
-            'import { registerClientReference } from "/src/envs/register/client.ts";';
+            'import { registerClientReference } from "/src/envs/register/rsc.ts";';
           const [_, exports] = parse(code);
           for (const e of exports) {
             c += `export const ${e.ln} = registerClientReference(${JSON.stringify(id)}, ${JSON.stringify(e.ln)});`;
@@ -139,12 +139,44 @@ function vitePluginRSC_UseServer(): PluginOption {
         }
 
         if (code.includes('"use server"') || code.includes("'use server'")) {
-          if (this.environment.name === "ssr") {
-            // TODO
-          } else if (this.environment.name === "react-server") {
-            // TODO
+          if (this.environment.name === "react-server") {
+            // TODO: Rewrite the code, but register the "function" against
+            let newCode = `\
+            import { registerServerReference } from "/src/envs/register/rsc.ts";
+          `;
+            const [_, exports] = parse(code);
+            for (const e of exports) {
+              newCode += `\
+              registerServerReference(${e.ln}, ${JSON.stringify(id)}, ${JSON.stringify(e.ln)});
+            `;
+            }
+
+            return `\
+            ${code}
+            ${newCode}
+          `;
+          } else if (this.environment.name === "ssr") {
+            let newCode = `\
+            import { createServerReference } from "/src/envs/register/ssr.ts";
+         `;
+            const [_, exports] = parse(code);
+            for (const e of exports) {
+              newCode += `\
+              export const ${e.ln} = createServerReference(${JSON.stringify(id)}, ${JSON.stringify(e.ln)})
+            `;
+            }
+            return newCode;
           } else if (this.environment.name === "client") {
-            // TODO
+            let newCode = `\
+            import { createServerReference } from "/src/envs/register/client.ts";
+          `;
+            const [_, exports] = parse(code);
+            for (const e of exports) {
+              newCode += `\
+              export const ${e.ln} = createServerReference(${JSON.stringify(id)}, ${JSON.stringify(e.ln)})
+            `;
+            }
+            return newCode;
           }
         }
       },
