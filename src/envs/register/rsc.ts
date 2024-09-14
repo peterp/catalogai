@@ -12,6 +12,21 @@ export function registerClientReference(id: string, exportName: string) {
   )
 }
 
+export function clientManifest() {
+  return new Proxy<ClientManifest>(
+    {},
+    {
+      get(_, key) {
+        if (typeof key !== "string") {
+          throw new Error('clientManifest "key" is not a string');
+        }
+        const [id, name] = key.split("#");
+        return { id, name, chunks: [] };
+      },
+    }
+  );
+}
+
 export function registerServerReference(
     action: Function,
     id: string,

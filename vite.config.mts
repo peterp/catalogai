@@ -86,7 +86,7 @@ function vitePluginRSC(): PluginOption {
       // TODO: Determine what's wrong with the "server.environments" type. Report to Vite team?
       const envs = server.environments as Record<
         "ssr" | "client" | "react-server",
-        DevEnvironmentgt
+        DevEnvironment
       >;
       if (!envs["react-server"]) {
         throw new Error('"react-server" environment is undefined.');
@@ -157,7 +157,7 @@ function vitePluginRSC_UseServer(): PluginOption {
           `;
           } else if (this.environment.name === "ssr") {
             let newCode = `\
-            import { createServerReference } from "/src/actions/ssr.ts";
+            import { createServerReference } from "/src/envs/register/ssr.ts";
          `;
             const [_, exports] = parse(code);
             for (const e of exports) {
