@@ -1,10 +1,6 @@
 'use server'
 
+import * as counterState from './counterState'
 
-let counter = 0
-
-export async function increment() {
-  counter += 1
-  console.log(counter)
-  return counter
-}
+export const increment = counterState.increment
+export const decrement = counterState.decrement

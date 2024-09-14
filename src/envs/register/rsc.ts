@@ -1,8 +1,7 @@
-import ReactServerDomServerEdge from "react-server-dom-webpack/server.edge"
-
+import ReactDomServer from "react-server-dom-webpack/server.edge"
 
 export function registerClientReference(id: string, exportName: string) {
-  const reference = ReactServerDomServerEdge.registerClientReference({}, id, exportName)
+  const reference = ReactDomServer.registerClientReference({}, id, exportName)
   return Object.defineProperties(
     {},
     {
@@ -35,5 +34,21 @@ export function registerServerReference(
     if (typeof action !== "function") {
         return action;
     }
-    return ReactServerDomServerEdge.registerServerReference(action, id, name);
+    return ReactDomServer.registerServerReference(action, id, name);
+}
+
+export async function rscActionHandler(req: Request) {
+  const url = new URL(req.url)
+  const body = await req.text()
+  const args = await ReactDomServer.decodeReply(body)
+
+  const actionId = url.searchParams.get('__rsc_action_id')
+  if (!actionId) {
+      throw new Error('"__rsc_action_id" is undefined.')
+  }
+  
+  const [file, name] = actionId.split('#')
+  const module = await import(/* @vite-ignore */ file!)
+  const result = await module[name!](...args)
+  return result
 }

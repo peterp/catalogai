@@ -3,6 +3,7 @@
 
 declare global {
   var __webpack_require__: (id: string) => unknown
+  var __rsc_callServer: (id: string, args: unknown[]) => Promise<void>
 }
 
 export {}

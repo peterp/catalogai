@@ -13,10 +13,6 @@ export async function ssrHandler(opts: {
   req: Request
   viteEnvRunnerRSC: ModuleRunner
 }) {
-  // Gonna have to rewrite this a bit.
-
-  // console.log(NotFoundPage)
-
   const { req, viteEnvRunnerRSC } = opts
   globalThis.__webpack_require__ = memoize(
     (id: string) => import(/* @vite-ignore */ id),
