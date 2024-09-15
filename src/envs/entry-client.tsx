@@ -51,6 +51,32 @@ async function entryClient() {
   };
 
   hydrateRoot(rootEl, <Content />);
+
+  // Replace navigation.
+  const originalPushState = history.pushState;
+  const originalReplaceState = history.replaceState;
+
+  history.pushState = function(state, title, url) {
+    originalPushState.apply(this, [state, title, url]);
+    handleNavigation(url as string);
+  };
+
+  history.replaceState = function(state, title, url) {
+    originalReplaceState.apply(this, [state, title, url]);
+    handleNavigation(url as string);
+  };
+
+
+  function handleNavigation(url: string) {
+    const parsedUrl = new URL(url);
+    parsedUrl.searchParams.set("__rsc", "");
+    console.log(parsedUrl);
+
+    const streamData = createFromFetch(fetch(parsedUrl), {
+      callServer: globalThis.__rsc_callServer
+    });
+    setRscPayload(streamData);
+  }
 }
 
 entryClient();

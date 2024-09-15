@@ -1,16 +1,17 @@
-import React from 'react'
+import React from "react";
 
-import { Like } from '../../components/Like/Like.jsx'
-import { Links } from '../../components/Links/Links.jsx'
-import { getCounter } from '../../counterState.js'
+import { Like } from "../../components/Like/Like.jsx";
+import { Links } from "../../components/Links/Links.jsx";
+import { getCount } from "../../counterState.js";
+import { Layout } from "../Layout.js";
 
 export default function Home() {
   return (
-    <div>
+    <Layout>
       <h1>Home</h1>
-      counter state: {getCounter()}
+      counter state: {getCount()}
       <Links />
       <Like />
-    </div>
-  )
+    </Layout>
+  );
 }

@@ -1,16 +1,17 @@
 import React from 'react'
+import { Link } from './Link'
 
 export function Links() {
   return (
     <ol>
       <li>
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
       </li>
       <li>
-        <a href="/test-1">Test 1</a>
+        <Link href="/test-1">Test 1</Link>
       </li>
       <li>
-        <a href="/test-2">Test 2</a>
+        <Link href="/test-2">Test 2</Link>
       </li>
     </ol>
   )

@@ -1,13 +1,27 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
+import React from "react";
 
-import { increment } from '../../counter'
+import { increment, decrement,  } from "../../counter";
 
 export function Like() {
-  const [counter, setCounter] = useState(0)
-  return <button onClick={() => {
-    increment()
-    setCounter(counter + 1)}
-  }>{counter} +</button>
+
+  return (
+    <>
+      <button
+        onClick={() => {
+          increment();
+        }}
+      >
+        +
+      </button>
+      <button
+        onClick={() => {
+          decrement();
+        }}
+      >
+        -
+      </button>
+    </>
+  );
 }
