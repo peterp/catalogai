@@ -1,6 +1,6 @@
 {
   "extends": "@tsconfig/strictest/tsconfig.json",
-  "include": ["src", "vite.config.mts"],
+  "include": ["src", "s.mts", "server.ts"],
   "compilerOptions": {
     "noEmit": true,
     "moduleResolution": "Bundler",
