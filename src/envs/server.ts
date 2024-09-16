@@ -1,27 +1,24 @@
 import path from "node:path";
 
+import multer from "multer";
+
 import { createMiddleware } from "@hattip/adapter-node";
 import vitePluginReact from "@vitejs/plugin-react";
 import { init, parse } from "es-module-lexer";
 import type { DevEnvironment } from "vite";
 import {
-  defineConfig,
   createServerModuleRunner,
+  createServer as createViteServer,
   type PluginOption,
   type Plugin,
   type Connect,
 } from "vite";
 import type { ModuleRunner } from "vite/module-runner";
-
-await init;
+import express from "express";
 
 // TODO(jgmw): We must set the env var so this function picks up the mock project directory
-process.env["RWJS_CWD"] = path.join(
-  import.meta.dirname,
-  "src",
-  "envs",
-  "__example__"
-);
+process.env["RWJS_CWD"] = path.join(import.meta.dirname, "../__example__/");
+
 
 let viteEnvRunnerRSC: ModuleRunner;
 
@@ -50,9 +47,10 @@ export function vitePluginSSR(opts: { entry: string }): PluginOption {
       );
       const handler: Connect.NextHandleFunction = async (req, res, next) => {
         const { ssrHandler } = await viteEnvRunnerSSR.import(opts.entry);
-        createMiddleware((ctx) =>
-          ssrHandler({ req: ctx.request, viteEnvRunnerRSC })
-        )(req, res, next);
+        createMiddleware((ctx) => {
+          console.log('does this come here?')
+          return ssrHandler({ req: ctx.request, viteEnvRunnerRSC });
+        })(req, res, next);
       };
       return () => server.middlewares.use(handler);
     },
@@ -114,8 +112,8 @@ function vitePluginRSC_UseClient(): PluginOption {
           return;
         }
 
-        // TODO: Implement AST parsing & modification.
         if (code.includes('"use client"') || code.includes("'use client'")) {
+          // await init;
           let c =
             'import { registerClientReference } from "/src/envs/register/rsc.ts";';
           const [_, exports] = parse(code);
@@ -242,13 +240,6 @@ function vitePluginRedwood_LoadPageForRoute(): PluginOption {
           return undefined;
         }
 
-        // TODO(jgmw): We must set the env var so this function picks up the mock project directory
-        process.env["RWJS_CWD"] = path.join(
-          import.meta.dirname,
-          "src",
-          "__example__"
-        );
-
         // Get the route from the pathname
         const searchParams = new URLSearchParams(
           source.substring(virtualModuleId.length)
@@ -291,32 +282,50 @@ function vitePluginRedwood_LoadPageForRoute(): PluginOption {
   ];
 }
 
-export default defineConfig({
-  appType: "custom",
-  base: "/",
-  clearScreen: false,
-  plugins: [
-    vitePluginReact(),
-    vitePluginRSC(),
-    vitePluginSSR({
-      entry: "src/envs/entry-ssr.tsx",
-    }),
-    vitePluginRedwood_LoadPageForRoute(),
-    vitePluginRedwood_Router_NotFoundPage(),
-  ],
-  environments: {
-    ssr: {
-      build: {
-        outDir: "dist/ssr",
-        sourcemap: true,
-      },
+async function createServer() {
+  await init;
+
+  const app = express();
+
+  const vite = await createViteServer({
+    appType: "custom",
+    server: {
+      middlewareMode: true,
     },
-    "react-server": {},
-    client: {
-      build: {
-        outDir: "dist/client",
-        sourcemap: true,
-      },
+    base: "/",
+    clearScreen: false,
+    plugins: [
+      vitePluginReact(),
+      vitePluginRSC(),
+      vitePluginSSR({
+        entry: "src/envs/entry-ssr.tsx",
+      }),
+      vitePluginRedwood_LoadPageForRoute(),
+      vitePluginRedwood_Router_NotFoundPage(),
+    ],
+    environments: {
+      ssr: {},
+      "react-server": {},
+      client: {},
     },
-  },
-});
+  });
+
+  app.use(vite.middlewares)
+
+  const upload = multer({ dest: 'uploads/' });
+
+  app.post('/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
+    res.send('File uploaded successfully.');
+  });
+
+  app.use("*", async (req, res) => {
+    // We're going to have to overwrite the SSR middleware.
+  });
+
+  app.listen(8910);
+}
+
+createServer();
