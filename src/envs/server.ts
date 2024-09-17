@@ -21,7 +21,7 @@ process.env["RWJS_CWD"] = path.join(import.meta.dirname, "../__example__/");
 let viteEnvRunnerRSC: ModuleRunner;
 let viteEnvRunnerSSR: ModuleRunner;
 
-export function vitePluginSSR(opts: { entry: string }): PluginOption {
+export function vitePluginSSR(): PluginOption {
   const plugin: Plugin = {
     name: vitePluginSSR.name,
     configEnvironment(name) {
@@ -29,16 +29,7 @@ export function vitePluginSSR(opts: { entry: string }): PluginOption {
         return;
       }
 
-      return {
-        build: {
-          ssr: true,
-          rollupOptions: {
-            input: {
-              index: opts.entry,
-            },
-          },
-        },
-      };
+      return {};
     },
     async configureServer(server) {
       const envs = server.environments as Record<
@@ -48,6 +39,7 @@ export function vitePluginSSR(opts: { entry: string }): PluginOption {
       if (!envs["ssr"]) {
         throw new Error('"ssr" environment is undefined.');
       }
+      console.log('i come here')
       viteEnvRunnerSSR = createServerModuleRunner(envs["ssr"]);
     },
   };
@@ -293,9 +285,7 @@ async function createServer() {
     plugins: [
       vitePluginReact(),
       vitePluginRSC(),
-      vitePluginSSR({
-        entry: "src/envs/entry-ssr.tsx",
-      }),
+      vitePluginSSR(),
       vitePluginRedwood_LoadPageForRoute(),
       vitePluginRedwood_Router_NotFoundPage(),
     ],
@@ -308,7 +298,7 @@ async function createServer() {
 
   app.use(vite.middlewares);
 
-  const upload = multer({ dest: '/public/uploads/' });
+  const upload = multer({ dest: 'public/uploads/' });
   app.post('/upload', upload.single('file'), (req, res) => {
     if (!req.file) {
       return res.status(400).send('No file uploaded.');
