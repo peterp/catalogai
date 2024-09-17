@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import multer from "multer";
+import { ulid } from "ulid";
 
 import { createMiddleware, DecoratedRequest } from "@hattip/adapter-node";
 import vitePluginReact from "@vitejs/plugin-react";
@@ -237,7 +238,10 @@ function vitePluginRedwood_LoadPageForRoute(): PluginOption {
         }
 
         // Extract the routes from the AST of the Routes.tsx file
-        const { getProjectRoutes } = await import("@redwoodjs/internal");
+        // only use routes.js so internal doesn't run generate on its own
+        const { getProjectRoutes } = await import(
+          "@redwoodjs/internal/dist/routes.js"
+        );
         const routes = getProjectRoutes();
 
         const { processPagesDir } = await import("@redwoodjs/project-config");
@@ -297,26 +301,61 @@ async function createServer() {
 
   app.use(vite.middlewares);
 
-  const upload = multer({ dest: 'public/uploads/' });
-  app.post('/upload', upload.single('file'), (req, res) => {
-    if (!req.file) {
-      return res.status(400).send('No file uploaded.');
-    }
-    res.send('File uploaded successfully.');
+  // setup multer disk storage for file uploads
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "./public/uploads/");
+    },
+    filename: function (req, file, cb) {
+      // using a ULID to avoid conflicts
+      // see: https://www.npmjs.com/package/ulid
+      const id = ulid();
+      const extension = file.originalname.split(".").pop();
+      const newFilename = `${file.fieldname}-${id}.${extension}`;
+      cb(null, newFilename);
+    },
   });
 
-  const { ssrHandler } = await viteEnvRunnerSSR.import('/src/envs/entry-ssr.tsx');
-  const handler = createMiddleware((ctx) => {
-    return ssrHandler({ req: ctx.request, viteEnvRunnerRSC })
-  })
-  app.use('*', (req, res, next) => {
-    req.url = req.originalUrl
-    handler(req as DecoratedRequest, res, next)
-  })
+  // setup multer middleware for file uploads
+  const upload = multer({ storage });
 
+  // setup endpoint for file uploads
+  app.post("/upload", upload.single("file"), (req, res) => {
+    if (!req.file) {
+      return res.status(400).send("No file uploaded.");
+    }
+
+    const { originalname, mimetype, size, filename } = req.file;
+    console.log(originalname, mimetype, size, filename, "File information");
+
+    // send a response to the client to confirm the file was uploaded
+    // and provide a link to the file
+    res.send(`
+      <html>
+        <body>
+          <h2>File uploaded successfully!</h2>
+          <p>File: ${originalname}</p>
+          <p>Type: ${mimetype}</p>
+          <p>Size: ${size} bytes</p>
+          <p>Saved as: <a href="/uploads/${filename}" target="_blank">${filename}</a></p>
+        </body>
+      </html>
+    `);
+  });
+
+  const { ssrHandler } = await viteEnvRunnerSSR.import(
+    "/src/envs/entry-ssr.tsx"
+  );
+  const handler = createMiddleware((ctx) => {
+    return ssrHandler({ req: ctx.request, viteEnvRunnerRSC });
+  });
+  app.use("*", (req, res, next) => {
+    req.url = req.originalUrl;
+    handler(req as DecoratedRequest, res, next);
+  });
 
   app.listen(8910);
-  console.log('Listening on http://localhost:8910')
+  console.log("Listening on http://localhost:8910");
 }
 
 createServer();
