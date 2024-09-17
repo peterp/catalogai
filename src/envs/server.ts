@@ -39,7 +39,6 @@ export function vitePluginSSR(): PluginOption {
       if (!envs["ssr"]) {
         throw new Error('"ssr" environment is undefined.');
       }
-      console.log('i come here')
       viteEnvRunnerSSR = createServerModuleRunner(envs["ssr"]);
     },
   };

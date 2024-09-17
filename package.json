@@ -30,6 +30,6 @@
     "vite": "6.0.0-alpha.24"
   },
   "scripts": {
-    "dev": "npx tsx src/envs/server.ts"
+    "dev": "npx tsx --watch src/envs/server.ts"
   }
 }
