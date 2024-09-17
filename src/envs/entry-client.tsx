@@ -70,7 +70,6 @@ async function entryClient() {
   function handleNavigation(url: string) {
     const parsedUrl = new URL(url);
     parsedUrl.searchParams.set("__rsc", "");
-    console.log(parsedUrl);
 
     const streamData = createFromFetch(fetch(parsedUrl), {
       callServer: globalThis.__rsc_callServer

@@ -2,7 +2,7 @@ import path from "node:path";
 
 import multer from "multer";
 
-import { createMiddleware } from "@hattip/adapter-node";
+import { createMiddleware, DecoratedRequest } from "@hattip/adapter-node";
 import vitePluginReact from "@vitejs/plugin-react";
 import { init, parse } from "es-module-lexer";
 import type { DevEnvironment } from "vite";
@@ -19,8 +19,8 @@ import express from "express";
 // TODO(jgmw): We must set the env var so this function picks up the mock project directory
 process.env["RWJS_CWD"] = path.join(import.meta.dirname, "../__example__/");
 
-
 let viteEnvRunnerRSC: ModuleRunner;
+let viteEnvRunnerSSR: ModuleRunner;
 
 export function vitePluginSSR(opts: { entry: string }): PluginOption {
   const plugin: Plugin = {
@@ -42,17 +42,14 @@ export function vitePluginSSR(opts: { entry: string }): PluginOption {
       };
     },
     async configureServer(server) {
-      const viteEnvRunnerSSR = createServerModuleRunner(
-        server.environments.ssr
-      );
-      const handler: Connect.NextHandleFunction = async (req, res, next) => {
-        const { ssrHandler } = await viteEnvRunnerSSR.import(opts.entry);
-        createMiddleware((ctx) => {
-          console.log('does this come here?')
-          return ssrHandler({ req: ctx.request, viteEnvRunnerRSC });
-        })(req, res, next);
-      };
-      return () => server.middlewares.use(handler);
+      const envs = server.environments as Record<
+        "ssr" | "client" | "react-server",
+        DevEnvironment
+      >;
+      if (!envs["ssr"]) {
+        throw new Error('"ssr" environment is undefined.');
+      }
+      viteEnvRunnerSSR = createServerModuleRunner(envs["ssr"]);
     },
   };
   return [plugin];
@@ -310,22 +307,20 @@ async function createServer() {
     },
   });
 
-  app.use(vite.middlewares)
+  app.use(vite.middlewares);
 
-  const upload = multer({ dest: 'uploads/' });
+  const { ssrHandler } = await viteEnvRunnerSSR.import('/src/envs/entry-ssr.tsx');
+  const handler = createMiddleware((ctx) => {
+    return ssrHandler({ req: ctx.request, viteEnvRunnerRSC })
+  })
+  app.use('*', (req, res, next) => {
+    req.url = req.originalUrl
+    handler(req as DecoratedRequest, res, next)
+  })
 
-  app.post('/upload', upload.single('file'), (req, res) => {
-    if (!req.file) {
-      return res.status(400).send('No file uploaded.');
-    }
-    res.send('File uploaded successfully.');
-  });
-
-  app.use("*", async (req, res) => {
-    // We're going to have to overwrite the SSR middleware.
-  });
 
   app.listen(8910);
+  console.log('Listening on http://localhost:8910')
 }
 
 createServer();
