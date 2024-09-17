@@ -11,7 +11,6 @@ import {
   createServer as createViteServer,
   type PluginOption,
   type Plugin,
-  type Connect,
 } from "vite";
 import type { ModuleRunner } from "vite/module-runner";
 import express from "express";
@@ -308,6 +307,14 @@ async function createServer() {
   });
 
   app.use(vite.middlewares);
+
+  const upload = multer({ dest: '/public/uploads/' });
+  app.post('/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded.');
+    }
+    res.send('File uploaded successfully.');
+  });
 
   const { ssrHandler } = await viteEnvRunnerSSR.import('/src/envs/entry-ssr.tsx');
   const handler = createMiddleware((ctx) => {

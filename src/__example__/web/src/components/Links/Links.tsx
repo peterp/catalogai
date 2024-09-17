@@ -13,6 +13,10 @@ export function Links() {
       <li>
         <Link href="/test-2">Test 2</Link>
       </li>
+
+      <li>
+        <Link href="/test-upload">Test Upload</Link>
+      </li>
     </ol>
   )
 }
