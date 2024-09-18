@@ -76,6 +76,21 @@ async function entryClient() {
     });
     setRscPayload(streamData);
   }
+
+
+  // Handle "LIVE"
+
+  window.addEventListener('load', () => {
+    const sse = new EventSource('http://localhost:8913');
+    sse.addEventListener('reload', () => {
+      handleNavigation(window.location.toString())
+      //window.location.reload();
+    });
+    window.addEventListener('beforeunload', () => {
+      sse.close();
+    });
+    // TODO (RSC): Handle disconnect / error states.
+  });
 }
 
 entryClient();

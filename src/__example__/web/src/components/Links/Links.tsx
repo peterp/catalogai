@@ -11,9 +11,8 @@ export function Links() {
         <Link href="/test-1">Test 1</Link>
       </li>
       <li>
-        <Link href="/test-2">Test 2</Link>
+        <Link href="/test-2">Ping? Pong!</Link>
       </li>
-
       <li>
         <Link href="/test-upload">Test Upload</Link>
       </li>

@@ -15,6 +15,7 @@ import {
 } from "vite";
 import type { ModuleRunner } from "vite/module-runner";
 import express from "express";
+import { createLiveServer } from "./live";
 
 // TODO(jgmw): We must set the env var so this function picks up the mock project directory
 process.env["RWJS_CWD"] = path.join(import.meta.dirname, "../__example__/");
@@ -394,11 +395,21 @@ async function createServer() {
   });
   app.use("*", (req, res, next) => {
     req.url = req.originalUrl;
+<<<<<<< HEAD
+    console.log("🌎", req.originalUrl);
+=======
+>>>>>>> origin/main
     handler(req as DecoratedRequest, res, next);
   });
 
   app.listen(8910);
+<<<<<<< HEAD
+  console.log("🌎 Listening on http://localhost:8910");
+
+  createLiveServer()
+=======
   console.log("Listening on http://localhost:8910");
+>>>>>>> origin/main
 }
 
 createServer();

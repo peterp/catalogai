@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Router, Route } from "@redwoodjs/router";
+// import { Router, Route } from "@redwoodjs/router";
 
 // NOTE(jgmw): These are typically injected by a babel plugin
 import HomePage from "./pages/HomePage/HomePage.jsx";
