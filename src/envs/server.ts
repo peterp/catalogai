@@ -395,21 +395,13 @@ async function createServer() {
   });
   app.use("*", (req, res, next) => {
     req.url = req.originalUrl;
-<<<<<<< HEAD
     console.log("🌎", req.originalUrl);
-=======
->>>>>>> origin/main
     handler(req as DecoratedRequest, res, next);
   });
 
   app.listen(8910);
-<<<<<<< HEAD
   console.log("🌎 Listening on http://localhost:8910");
-
   createLiveServer()
-=======
-  console.log("Listening on http://localhost:8910");
->>>>>>> origin/main
 }
 
 createServer();
