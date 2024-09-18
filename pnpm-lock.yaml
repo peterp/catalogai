@@ -77,6 +77,9 @@ importers:
       typescript:
         specifier: 5.5.4
         version: 5.5.4
+      ulid:
+        specifier: 2.3.0
+        version: 2.3.0
       vite:
         specifier: 6.0.0-alpha.24
         version: 6.0.0-alpha.24(@types/node@20.14.11)(terser@5.32.0)
@@ -3982,6 +3985,10 @@ packages:
 
   ua-parser-js@1.0.38:
     resolution: {integrity: sha512-Aq5ppTOfvrCMgAPneW1HfWj66Xi7XL+/mIy996R1/CLS/rcyJQm6QZdsKrUeivDFQ+Oc9Wyuwor8Ze8peEoUoQ==}
+
+  ulid@2.3.0:
+    resolution: {integrity: sha512-keqHubrlpvT6G2wH0OEfSW4mquYRcbe/J8NMmveoQOjUqmo+hXtO+ORCpWhdbZ7k72UtY61BL7haGxW6enBnjw==}
+    hasBin: true
 
   unc-path-regex@0.1.2:
     resolution: {integrity: sha512-eXL4nmJT7oCpkZsHZUOJo8hcX3GbsiDOa0Qu9F646fi8dT3XuSVopVqAcEiVzSKKH7UoDti23wNX3qGFxcW5Qg==}
@@ -8893,6 +8900,8 @@ snapshots:
   typescript@5.6.2: {}
 
   ua-parser-js@1.0.38: {}
+
+  ulid@2.3.0: {}
 
   unc-path-regex@0.1.2: {}
 

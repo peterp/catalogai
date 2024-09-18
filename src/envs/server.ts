@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import multer from "multer";
+import { ulid } from "ulid";
 
 import { createMiddleware, DecoratedRequest } from "@hattip/adapter-node";
 import vitePluginReact from "@vitejs/plugin-react";
@@ -238,7 +239,10 @@ function vitePluginRedwood_LoadPageForRoute(): PluginOption {
         }
 
         // Extract the routes from the AST of the Routes.tsx file
-        const { getProjectRoutes } = await import("@redwoodjs/internal");
+        // only use routes.js so internal doesn't run generate on its own
+        const { getProjectRoutes } = await import(
+          "@redwoodjs/internal/dist/routes.js"
+        );
         const routes = getProjectRoutes();
 
         const { processPagesDir } = await import("@redwoodjs/project-config");
@@ -298,12 +302,89 @@ async function createServer() {
 
   app.use(vite.middlewares);
 
-  const upload = multer({ dest: "public/uploads/" });
-  app.post("/upload", upload.single("file"), (req, res) => {
-    if (!req.file) {
-      return res.status(400).send("No file uploaded.");
+  // setup multer disk storage for file uploads
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "./public/uploads/");
+    },
+    filename: function (req, file, cb) {
+      // using a ULID to avoid conflicts
+      // see: https://www.npmjs.com/package/ulid
+      const id = ulid();
+      const extension = file.originalname.split(".").pop();
+      const newFilename = `${file.fieldname}-${id}.${extension}`;
+      cb(null, newFilename);
+    },
+  });
+
+  class InvalidFileTypeError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "InvalidFileTypeError";
     }
-    res.send("File uploaded successfully.");
+  }
+
+  // filter out non image files
+  const imageFileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      console.warn("Invalid file type. Only images are allowed.");
+      cb(
+        new InvalidFileTypeError("Invalid file type. Only images are allowed."),
+        false
+      );
+    }
+  };
+
+  // setup multer middleware for file uploads
+  const upload = multer({
+    storage,
+    fileFilter: imageFileFilter,
+    limits: { fileSize: 5 * 1_024 * 1_024 },
+  });
+
+  // handle the file input for an upload form
+  const fileUploader = upload.single("file");
+
+  // setup endpoint for file uploads
+  app.post("/upload", (req, res) => {
+    fileUploader(req, res, (err) => {
+      if (err && err instanceof multer.MulterError) {
+        console.warn("Multer error:", err.message);
+        return res.status(400).send(err.message);
+      }
+
+      if (err && err instanceof InvalidFileTypeError) {
+        console.warn("Invalid file type error:", err.message);
+        return res.status(400).send(err.message);
+      }
+
+      // Note: can't just handle all errors because there is a strange
+      // end of form error when uploading with multipart form data
+
+      if (!req.file) {
+        res.status(400).send("No file uploaded.");
+      }
+      if (req.file) {
+        const { originalname, mimetype, size, filename } = req.file;
+        console.log(originalname, mimetype, size, filename, "File information");
+
+        // send a response to the client to confirm the file was uploaded
+        // and provide a link to the file
+        res.send(`
+      <html>
+        <body>
+          <h2>File uploaded successfully!</h2>
+          <p>File: ${originalname}</p>
+          <p>Type: ${mimetype}</p>
+          <p>Size: ${size} bytes</p>
+          <p>Saved as: <a href="/uploads/${filename}" target="_blank">${filename}</a></p>
+        </body>
+      </html>
+      `);
+      }
+    });
   });
 
   const { ssrHandler } = await viteEnvRunnerSSR.import(
@@ -314,14 +395,21 @@ async function createServer() {
   });
   app.use("*", (req, res, next) => {
     req.url = req.originalUrl;
+<<<<<<< HEAD
     console.log("🌎", req.originalUrl);
+=======
+>>>>>>> origin/main
     handler(req as DecoratedRequest, res, next);
   });
 
   app.listen(8910);
+<<<<<<< HEAD
   console.log("🌎 Listening on http://localhost:8910");
 
   createLiveServer()
+=======
+  console.log("Listening on http://localhost:8910");
+>>>>>>> origin/main
 }
 
 createServer();
