@@ -316,21 +316,62 @@ async function createServer() {
     },
   });
 
+  class InvalidFileTypeError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = "InvalidFileTypeError";
+    }
+  }
+
+  // filter out non image files
+  const imageFileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      console.warn("Invalid file type. Only images are allowed.");
+      cb(
+        new InvalidFileTypeError("Invalid file type. Only images are allowed."),
+        false
+      );
+    }
+  };
+
   // setup multer middleware for file uploads
-  const upload = multer({ storage });
+  const upload = multer({
+    storage,
+    fileFilter: imageFileFilter,
+    limits: { fileSize: 5 * 1_024 * 1_024 },
+  });
+
+  // handle the file input for an upload form
+  const fileUploader = upload.single("file");
 
   // setup endpoint for file uploads
-  app.post("/upload", upload.single("file"), (req, res) => {
-    if (!req.file) {
-      return res.status(400).send("No file uploaded.");
-    }
+  app.post("/upload", (req, res) => {
+    fileUploader(req, res, (err) => {
+      if (err && err instanceof multer.MulterError) {
+        console.warn("Multer error:", err.message);
+        return res.status(400).send(err.message);
+      }
 
-    const { originalname, mimetype, size, filename } = req.file;
-    console.log(originalname, mimetype, size, filename, "File information");
+      if (err && err instanceof InvalidFileTypeError) {
+        console.warn("Invalid file type error:", err.message);
+        return res.status(400).send(err.message);
+      }
 
-    // send a response to the client to confirm the file was uploaded
-    // and provide a link to the file
-    res.send(`
+      // Note: can't just handle all errors because there is a strange
+      // end of form error when uploading with multipart form data
+
+      if (!req.file) {
+        res.status(400).send("No file uploaded.");
+      }
+      if (req.file) {
+        const { originalname, mimetype, size, filename } = req.file;
+        console.log(originalname, mimetype, size, filename, "File information");
+
+        // send a response to the client to confirm the file was uploaded
+        // and provide a link to the file
+        res.send(`
       <html>
         <body>
           <h2>File uploaded successfully!</h2>
@@ -340,7 +381,9 @@ async function createServer() {
           <p>Saved as: <a href="/uploads/${filename}" target="_blank">${filename}</a></p>
         </body>
       </html>
-    `);
+      `);
+      }
+    });
   });
 
   const { ssrHandler } = await viteEnvRunnerSSR.import(
