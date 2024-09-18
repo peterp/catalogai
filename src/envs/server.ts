@@ -14,6 +14,7 @@ import {
 } from "vite";
 import type { ModuleRunner } from "vite/module-runner";
 import express from "express";
+import { createLiveServer } from "./live";
 
 // TODO(jgmw): We must set the env var so this function picks up the mock project directory
 process.env["RWJS_CWD"] = path.join(import.meta.dirname, "../__example__/");
@@ -297,26 +298,30 @@ async function createServer() {
 
   app.use(vite.middlewares);
 
-  const upload = multer({ dest: 'public/uploads/' });
-  app.post('/upload', upload.single('file'), (req, res) => {
+  const upload = multer({ dest: "public/uploads/" });
+  app.post("/upload", upload.single("file"), (req, res) => {
     if (!req.file) {
-      return res.status(400).send('No file uploaded.');
+      return res.status(400).send("No file uploaded.");
     }
-    res.send('File uploaded successfully.');
+    res.send("File uploaded successfully.");
   });
 
-  const { ssrHandler } = await viteEnvRunnerSSR.import('/src/envs/entry-ssr.tsx');
+  const { ssrHandler } = await viteEnvRunnerSSR.import(
+    "/src/envs/entry-ssr.tsx"
+  );
   const handler = createMiddleware((ctx) => {
-    return ssrHandler({ req: ctx.request, viteEnvRunnerRSC })
-  })
-  app.use('*', (req, res, next) => {
-    req.url = req.originalUrl
-    handler(req as DecoratedRequest, res, next)
-  })
-
+    return ssrHandler({ req: ctx.request, viteEnvRunnerRSC });
+  });
+  app.use("*", (req, res, next) => {
+    req.url = req.originalUrl;
+    console.log("🌎", req.originalUrl);
+    handler(req as DecoratedRequest, res, next);
+  });
 
   app.listen(8910);
-  console.log('Listening on http://localhost:8910')
+  console.log("🌎 Listening on http://localhost:8910");
+
+  createLiveServer()
 }
 
 createServer();
